@@ -98,5 +98,6 @@ if __name__=='__main__':
     p.add_argument('--salida',type=Path,default=Path('modelos'))
     p.add_argument('--umbral',type=float,default=0.5)
     p.add_argument('--modelo',choices=CANDIDATOS,action='append')
+    p.add_argument('--sin-mlflow',action='store_true',help='Entrena y valida sin registro MLflow (build de inferencia)')
     a=p.parse_args()
-    ejecutar(a.datos,a.salida,a.umbral,a.modelo or CANDIDATOS)
+    ejecutar(a.datos,a.salida,a.umbral,a.modelo or CANDIDATOS,tracking=not a.sin_mlflow)
