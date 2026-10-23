@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=65"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "comercial-andina-mlops-mora-api"
+version = "0.1.0"
+description = "API académica FastAPI para demostrar predicción de mora con datos sintéticos"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "numpy==2.3.5",
+  "pandas==2.2.3",
+  "scipy==1.17.0",
+  "scikit-learn==1.8.0",
+  "joblib==1.5.3",
+  "fastapi==0.128.2",
+  "uvicorn==0.34.3",
+]
+
+[tool.vercel.scripts]
+build = "python entrenar.py --sin-mlflow"
