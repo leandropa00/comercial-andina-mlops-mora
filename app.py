@@ -21,7 +21,7 @@ class ClienteCredito(BaseModel):
 
 @lru_cache(maxsize=1)
 def cargar_modelo():
-    archivo=Path(os.getenv('MODEL_PATH','modelos/modelo.joblib'))
+    archivo=Path(os.getenv('MODEL_PATH',str(Path(__file__).resolve().parent/'modelos'/'modelo.joblib')))
     if not archivo.exists():
         raise FileNotFoundError(f'No existe un modelo aprobado: {archivo}')
     return joblib.load(archivo)
