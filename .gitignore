@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+mlflow.db
+mlruns/
+modelos/*.joblib
+modelos/*.json
+modelos/*.csv
+datos/produccion_deriva.csv

@@ -1,0 +1,59 @@
+name: CI - Comercial Andina
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  mlops:
+    runs-on: ubuntu-latest
+    env:
+      MLFLOW_TRACKING_URI: sqlite:///mlflow.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Instalar dependencias versionadas
+        run: python -m pip install -r requirements.txt
+      - name: Validar dataset sintético
+        run: python validar_datos.py
+      - name: Ejecutar cuatro variantes y puerta de calidad
+        run: python entrenar.py
+      - name: Ejecutar pruebas automáticas
+        run: python -m pytest -q pruebas
+      - name: Evidenciar rechazo de un modelo deficiente
+        run: |
+          if python entrenar.py --modelo baseline --salida /tmp/rechazado; then
+            echo 'ERROR: se aceptó un modelo rechazado'
+            exit 1
+          fi
+          test ! -f /tmp/rechazado/modelo.joblib
+      - name: Construir contenedor y comprobar salud
+        run: |
+          docker build -t comercial-andina-mora .
+          docker run -d --name mora-api -p 8000:8000 comercial-andina-mora
+          for i in $(seq 1 25); do
+            if curl -fsS http://localhost:8000/salud; then break; fi
+            sleep 2
+          done
+          curl -fsS http://localhost:8000/salud
+          docker rm -f mora-api
+      - name: Simular deriva y comprobar alerta KS
+        run: |
+          python simular_produccion.py
+          if python monitoreo.py --reciente datos/produccion_deriva.csv > monitoreo_resultado.txt; then
+            echo 'ERROR: el monitor no detectó deriva'
+            exit 1
+          fi
+          grep '"deriva": true' monitoreo_resultado.txt
+      - name: Guardar evidencias del pipeline
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-mlops-mora
+          if-no-files-found: warn
+          path: |
+            modelos/experimentos.csv
+            modelos/experimentos.json
+            mlflow.db
+            monitoreo_resultado.txt
