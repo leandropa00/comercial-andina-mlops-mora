@@ -19,3 +19,6 @@ dependencies = [
 
 [tool.vercel.scripts]
 build = "python entrenar.py --sin-mlflow"
+
+[tool.setuptools]
+py-modules = ["app", "entrenar", "validar_datos"]
