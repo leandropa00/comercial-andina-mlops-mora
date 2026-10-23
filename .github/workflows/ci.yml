@@ -18,7 +18,7 @@ jobs:
       - name: Validar dataset sintético
         run: python validar_datos.py
       - name: Ejecutar cuatro variantes y puerta de calidad
-        run: python entrenar.py
+        run: python entrenar.py --umbral 1.01  # Fallo intencional para evidenciar la puerta de calidad
       - name: Ejecutar pruebas automáticas
         run: python -m pytest -q pruebas
       - name: Evidenciar rechazo de un modelo deficiente
