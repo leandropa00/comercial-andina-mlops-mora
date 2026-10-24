@@ -1,4 +1,8 @@
-"""Genera 2.000 registros SINTÉTICOS sin datos de personas reales."""
+"""Genera registros SINTÉTICOS: mora depende de cuatro entradas + ruido.
+
+Variables causales: atrasos, uso del cupo, antigüedad e ingresos.
+Edad, cupo aprobado y compras son covariables descriptivas no causales.
+"""
 from pathlib import Path
 import argparse
 import csv
@@ -29,7 +33,7 @@ def generar(destino=Path('datos/mora_sintetica.csv'), filas=2000, semilla=202610
             atrasos = entero(0, 4) if aleatorio() < 0.48 else 0
             compras = entero(0, 24)
             ruido = sum(aleatorio() for _ in range(12)) - 6
-            z = -1.45 + 0.56*atrasos + 0.025*(uso-50) - 0.011*(meses-45) - 0.115*(ingreso-5) - 0.019*(compras-10) + 0.5*ruido
+            z = -1.45 + 0.56*atrasos + 0.025*(uso-50) - 0.011*(meses-45) - 0.115*(ingreso-5) + 0.5*ruido
             mora = int(aleatorio() < 1/(1 + math.exp(-z)))
             positivos += mora
             writer.writerow([edad, f'{ingreso:.2f}', f'{cupo:.2f}', f'{uso:.2f}', meses, atrasos, compras, mora])

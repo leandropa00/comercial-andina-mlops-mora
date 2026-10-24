@@ -25,8 +25,49 @@ jobs:
         run: python validar_datos.py
       - name: Ejecutar cuatro variantes y puerta de calidad
         run: python entrenar.py
+      - name: Verificar artefactos de modelos aprobados en MLflow
+        run: |
+          python - <<'PYCODE'
+          from mlflow import MlflowClient
+          c = MlflowClient(tracking_uri='sqlite:///mlflow.db')
+          exp = c.get_experiment_by_name('comercial-andina-mora-sintetica')
+          assert exp is not None
+          runs = c.search_runs([exp.experiment_id])
+          assert len(runs)==4, len(runs)
+          approved = [r for r in runs if r.data.tags.get('puerta')=='aprobado']
+          rejected = [r for r in runs if r.data.tags.get('puerta')=='rechazado']
+          assert approved and rejected
+          for r in approved:
+              assert any(a.path.endswith('.joblib') for a in c.list_artifacts(r.info.run_id,'modelos'))
+          for r in rejected:
+              assert not c.list_artifacts(r.info.run_id,'modelos')
+          print('MLflow: cuatro runs y modelos de candidatos aprobados verificados')
+          PYCODE
       - name: Ejecutar pruebas automáticas
         run: python -m pytest -q pruebas
+      - name: Demostrar fallo intencional de Pytest al quitar validación
+        run: |
+          cp app.py /tmp/app_original.py
+          python - <<'PYCODE'
+          from pathlib import Path
+          path = Path('app.py')
+          text = path.read_text()
+          target = 'uso_cupo_pct: float = Field(ge=0,le=100)'
+          assert target in text
+          path.write_text(text.replace(target, 'uso_cupo_pct: float = Field(ge=0)'))
+          PYCODE
+          set +e
+          python -m pytest -q pruebas/test_app.py > /tmp/pytest_falla_deliberada.txt 2>&1
+          status=$?
+          set -e
+          cp /tmp/app_original.py app.py
+          cat /tmp/pytest_falla_deliberada.txt
+          if [ "$status" -eq 0 ]; then
+            echo 'ERROR: Pytest no detectó la validación retirada'
+            exit 1
+          fi
+          grep -q 'FAILED' /tmp/pytest_falla_deliberada.txt
+          echo 'Validación restaurada; fallo deliberado confirmado.'
       - name: Evidenciar rechazo de un modelo deficiente
         run: |
           if python entrenar.py --modelo baseline --salida /tmp/rechazado; then
@@ -63,3 +104,4 @@ jobs:
             modelos/experimentos.json
             mlflow.db
             monitoreo_resultado.txt
+            /tmp/pytest_falla_deliberada.txt
