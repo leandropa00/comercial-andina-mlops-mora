@@ -24,3 +24,12 @@ def test_etiqueta_invalida_rechazada(tmp_path):
     df.to_csv(archivo,index=False)
     with pytest.raises(ValueError,match='solo puede ser'):
         validar(archivo)
+
+
+def test_generador_determinista_cuatro_variables(tmp_path):
+    from generar_datos import generar
+    a, b = tmp_path/'a.csv', tmp_path/'b.csv'
+    generar(a, semilla=20261017)
+    generar(b, semilla=20261017)
+    assert a.read_bytes()==b.read_bytes()
+    assert a.read_bytes()==Path('datos/mora_sintetica.csv').read_bytes()
