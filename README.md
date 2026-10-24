@@ -54,8 +54,6 @@ Reentrenamiento: KS significativo en dos ventanas semanales, recall observado <0
 
 El tablero académico modela dos sprints semanales simulados: **17–23** y **24–30 de octubre de 2026**. Las retrospectivas y actividades futuras no deben confundirse con eventos históricos realizados. El plan de adopción incluye matriz poder/interés, comunicaciones, capacitación y objetivos de uso.
 
-**Uso de IA:** ChatGPT (OpenAI) se utilizó para apoyar diseño, generación y validación del código y redacción. Los estudiantes deben revisar, ejecutar y defender el resultado.
-
 ## Despliegue de inferencia en Vercel
 
 El archivo `pyproject.toml` usa solo dependencias de inferencia con versiones fijadas. Su comando de build `python entrenar.py --sin-mlflow` reconstruye el modelo desde el dataset sintético versionado y aplica el mismo umbral de calidad. El artefacto `modelos/modelo.joblib` se produce durante el build y **no** se añade a Git. El CI ejecuta además las cuatro variantes y las registra en MLflow por separado.
